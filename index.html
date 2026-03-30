@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Intelligence Artificielle - Projet Scolaire</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Navigation */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.25); }
+        .slide-counter {
+            position: fixed;
+            bottom: 35px;
+            right: 40px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            z-index: 1000;
+        }
+
+        /* Slides */
+        .slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateX(60px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            padding: 60px;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+        .slide.exit {
+            opacity: 0;
+            transform: translateX(-60px);
+        }
+
+        /* ===== SLIDE 1: Title ===== */
+        .slide-1 {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            flex-direction: column;
+            text-align: center;
+        }
+        .slide-1 .glow-orb {
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99,102,241,0.3), transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        .slide-1 .glow-orb:nth-child(1) { top: -100px; right: -100px; }
+        .slide-1 .glow-orb:nth-child(2) { bottom: -100px; left: -100px; background: radial-gradient(circle, rgba(236,72,153,0.2), transparent 70%); animation-delay: 2s; }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .slide-1 .ai-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .slide-1 h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .slide-1 h2 {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 40px;
+        }
+        .slide-1 .student-info {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 20px 40px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        .slide-1 .student-info p {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+        .slide-1 .student-info .name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #c084fc;
+            margin-top: 5px;
+        }
+        .slide-1 .student-info .level {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 5px;
+        }
+
+        /* ===== SLIDE 2: Sommaire ===== */
+        .slide-2 {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+        }
+        .slide-2 .content {
+            max-width: 900px;
+            width: 100%;
+        }
+        .slide-2 h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #818cf8;
+        }
+        .toc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px 24px;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .toc-item:hover {
+            background: rgba(129,140,248,0.1);
+            border-color: rgba(129,140,248,0.3);
+        }
+        .toc-num {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .toc-text { font-size: 1rem; color: rgba(255,255,255,0.85); }
+
+        /* ===== Generic content slides ===== */
+        .content-slide {
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .content-slide .slide-inner {
+            max-width: 1100px;
+            width: 100%;
+        }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #818cf8;
+            margin-bottom: 10px;
+        }
+        .content-slide h2 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        /* Card grid */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(129,140,248,0.4);
+            background: rgba(255,255,255,0.08);
+        }
+        .card .icon { font-size: 2.2rem; margin-bottom: 12px; }
+        .card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: #c4b5fd; }
+        .card p { font-size: 0.9rem; color: rgba(255,255,255,0.65); line-height: 1.6; }
+
+        /* Two column layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            width: 100%;
+            align-items: center;
+        }
+        .two-col .text-col p {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .two-col .img-col {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .img-placeholder {
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 4/3;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Timeline */
+        .timeline {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #818cf8, #c084fc, #f472b6);
+        }
+        .timeline-item {
+            display: flex;
+            gap: 20px;
+            padding: 12px 0;
+            align-items: flex-start;
+        }
+        .timeline-dot {
+            width: 14px; height: 14px;
+            background: #818cf8;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-left: -36px;
+            margin-top: 4px;
+            border: 2px solid #1a1a2e;
+        }
+        .timeline-content .year {
+            font-weight: 700;
+            color: #c084fc;
+            font-size: 1rem;
+        }
+        .timeline-content .desc {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.65);
+        }
+
+        /* Lists */
+        .styled-list {
+            list-style: none;
+            width: 100%;
+        }
+        .styled-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+        }
+        .styled-list .bullet {
+            width: 8px; height: 8px;
+            background: #818cf8;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 8px;
+        }
+
+        /* Pros/Cons */
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            width: 100%;
+        }
+        .pros-cons .col h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pros-cons .pro-title { color: #34d399; }
+        .pros-cons .con-title { color: #f87171; }
+        .pros-cons ul { list-style: none; }
+        .pros-cons ul li {
+            padding: 8px 0;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        /* Slide backgrounds */
+        .bg-1 { background: linear-gradient(135deg, #1a1a2e, #0f3460); }
+        .bg-2 { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+        .bg-3 { background: linear-gradient(135deg, #0f0c29, #1a1a2e); }
+        .bg-4 { background: linear-gradient(135deg, #1a1a2e, #1e1b4b); }
+        .bg-5 { background: linear-gradient(135deg, #0f172a, #1e1b4b); }
+
+        /* Thank you slide */
+        .slide-thank {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            flex-direction: column;
+            text-align: center;
+        }
+        .slide-thank h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #34d399, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+        .slide-thank p {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.6);
+        }
+        .slide-thank .emoji-big {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        /* Keyboard hint */
+        .key-hint {
+            position: fixed;
+            bottom: 38px;
+            left: 40px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            z-index: 1000;
+        }
+        .key-hint kbd {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+<!-- =================== SLIDE 1: TITLE =================== -->
+<div class="slide slide-1 active" data-slide="1">
+    <div class="glow-orb"></div>
+    <div class="glow-orb"></div>
+    <div class="ai-icon">🤖</div>
+    <h1>L'Intelligence Artificielle</h1>
+    <h2>Projet Scolaire - Informatique</h2>
+    <div class="student-info">
+        <p>Realise par</p>
+        <p class="name">Ayoub Assouar</p>
+        <p class="level">Tronc Commun Scientifique</p>
+    </div>
+</div>
+
+<!-- =================== SLIDE 2: SOMMAIRE =================== -->
+<div class="slide slide-2" data-slide="2">
+    <div class="content">
+        <h2>Sommaire</h2>
+        <div class="toc-grid">
+            <div class="toc-item"><div class="toc-num">1</div><div class="toc-text">Qu'est-ce que l'IA ?</div></div>
+            <div class="toc-item"><div class="toc-num">2</div><div class="toc-text">Histoire de l'IA</div></div>
+            <div class="toc-item"><div class="toc-num">3</div><div class="toc-text">Les types d'IA</div></div>
+            <div class="toc-item"><div class="toc-num">4</div><div class="toc-text">Comment fonctionne l'IA ?</div></div>
+            <div class="toc-item"><div class="toc-num">5</div><div class="toc-text">Applications de l'IA</div></div>
+            <div class="toc-item"><div class="toc-num">6</div><div class="toc-text">L'IA dans la vie quotidienne</div></div>
+            <div class="toc-item"><div class="toc-num">7</div><div class="toc-text">Avantages et Inconvenients</div></div>
+            <div class="toc-item"><div class="toc-num">8</div><div class="toc-text">L'avenir de l'IA</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 3: Qu'est-ce que l'IA =================== -->
+<div class="slide content-slide bg-1" data-slide="3">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 1</div>
+        <h2>Qu'est-ce que l'Intelligence Artificielle ?</h2>
+        <div class="two-col">
+            <div class="text-col">
+                <p>L'intelligence artificielle (IA) est une branche de l'informatique qui vise a creer des systemes capables d'effectuer des taches qui necessitent normalement l'intelligence humaine.</p>
+                <p>Ces taches incluent : la reconnaissance vocale, la prise de decision, la traduction de langues, et la perception visuelle.</p>
+                <p>Le terme "Intelligence Artificielle" a ete invente par <strong style="color:#c084fc">John McCarthy</strong> en 1956 lors de la conference de Dartmouth.</p>
+            </div>
+            <div class="img-col">
+                <div class="img-placeholder" style="background: linear-gradient(135deg, rgba(129,140,248,0.2), rgba(192,132,252,0.2));">
+                    <span>🧠</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 4: Histoire =================== -->
+<div class="slide content-slide bg-2" data-slide="4">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 2</div>
+        <h2>L'Histoire de l'Intelligence Artificielle</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="year">1950</span>
+                    <span class="desc"> - Alan Turing propose le "Test de Turing" pour mesurer l'intelligence des machines</span>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="year">1956</span>
+                    <span class="desc"> - Conference de Dartmouth : naissance officielle de l'IA comme domaine de recherche</span>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="year">1966</span>
+                    <span class="desc"> - ELIZA, le premier chatbot, est cree par Joseph Weizenbaum au MIT</span>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="year">1997</span>
+                    <span class="desc"> - Deep Blue (IBM) bat le champion du monde d'echecs Garry Kasparov</span>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="year">2011</span>
+                    <span class="desc"> - IBM Watson gagne au jeu televisee Jeopardy! contre des champions humains</span>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="year">2016</span>
+                    <span class="desc"> - AlphaGo (Google DeepMind) bat le champion mondial du jeu de Go</span>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <span class="year">2022-2024</span>
+                    <span class="desc"> - ChatGPT et les grands modeles de langage revolutionnent l'IA generative</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 5: Types d'IA =================== -->
+<div class="slide content-slide bg-3" data-slide="5">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 3</div>
+        <h2>Les Types d'Intelligence Artificielle</h2>
+        <div class="card-grid">
+            <div class="card">
+                <div class="icon">🎯</div>
+                <h3>IA Faible (Narrow AI)</h3>
+                <p>Concue pour une tache specifique. C'est le type d'IA le plus courant aujourd'hui. Exemples : Siri, Alexa, filtres de spam, recommandations Netflix.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🧠</div>
+                <h3>IA Forte (General AI)</h3>
+                <p>Une IA qui pourrait comprendre et apprendre n'importe quelle tache intellectuelle comme un humain. Ce type n'existe pas encore mais fait l'objet de recherches actives.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🚀</div>
+                <h3>Super IA (Super AI)</h3>
+                <p>Une IA hypothetique qui depasserait l'intelligence humaine dans tous les domaines. C'est un concept theorique qui souleve beaucoup de questions ethiques.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 6: Comment ca marche =================== -->
+<div class="slide content-slide bg-4" data-slide="6">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 4</div>
+        <h2>Comment Fonctionne l'IA ?</h2>
+        <div class="card-grid">
+            <div class="card">
+                <div class="icon">📊</div>
+                <h3>1. Les Donnees</h3>
+                <p>L'IA a besoin de grandes quantites de donnees pour apprendre. Plus les donnees sont nombreuses et de qualite, meilleure sera l'IA.</p>
+            </div>
+            <div class="card">
+                <div class="icon">⚙️</div>
+                <h3>2. Les Algorithmes</h3>
+                <p>Des regles mathematiques permettent a l'IA d'analyser les donnees, de trouver des patterns et de prendre des decisions.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🔄</div>
+                <h3>3. L'Apprentissage (Machine Learning)</h3>
+                <p>L'IA s'ameliore en s'entrainant sur des donnees. Elle ajuste ses parametres pour obtenir de meilleurs resultats a chaque iteration.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🧬</div>
+                <h3>4. Les Reseaux de Neurones</h3>
+                <p>Inspires du cerveau humain, ces reseaux sont composes de couches de "neurones" artificiels qui traitent l'information de maniere hierarchique.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 7: Applications =================== -->
+<div class="slide content-slide bg-5" data-slide="7">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 5</div>
+        <h2>Les Applications de l'IA</h2>
+        <div class="card-grid">
+            <div class="card">
+                <div class="icon">🏥</div>
+                <h3>Medecine</h3>
+                <p>Diagnostic de maladies, analyse d'imagerie medicale, decouverte de medicaments, et chirurgie assistee par robot.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🚗</div>
+                <h3>Transport</h3>
+                <p>Voitures autonomes (Tesla, Waymo), optimisation du trafic, et systemes de navigation intelligents.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🎓</div>
+                <h3>Education</h3>
+                <p>Tutorat personnalise, correction automatique, et plateformes d'apprentissage adaptatif.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🎮</div>
+                <h3>Jeux Video</h3>
+                <p>Personnages non-joueurs (PNJ) intelligents, generation procedurale de contenu, et matchmaking.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🏦</div>
+                <h3>Finance</h3>
+                <p>Detection de fraudes, trading algorithmique, evaluation des risques, et chatbots de service client.</p>
+            </div>
+            <div class="card">
+                <div class="icon">🌍</div>
+                <h3>Environnement</h3>
+                <p>Prevision climatique, surveillance de la deforestation, optimisation energetique, et agriculture de precision.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 8: Vie quotidienne =================== -->
+<div class="slide content-slide bg-1" data-slide="8">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 6</div>
+        <h2>L'IA dans Notre Vie Quotidienne</h2>
+        <div class="two-col">
+            <div class="text-col">
+                <ul class="styled-list">
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">Assistants vocaux</strong> : Siri, Google Assistant, Alexa comprennent et repondent a vos questions</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">Reseaux sociaux</strong> : L'IA selectionne le contenu de votre fil d'actualite (Instagram, TikTok, YouTube)</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">Streaming</strong> : Netflix et Spotify utilisent l'IA pour recommander des films et de la musique</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">Photographie</strong> : Le mode portrait et les filtres de votre telephone utilisent l'IA</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">Traduction</strong> : Google Translate utilise l'IA pour traduire plus de 100 langues</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">ChatGPT</strong> : Des millions de personnes utilisent l'IA generative pour ecrire, coder, et creer</span></li>
+                </ul>
+            </div>
+            <div class="img-col">
+                <div class="img-placeholder" style="background: linear-gradient(135deg, rgba(52,211,153,0.2), rgba(129,140,248,0.2));">
+                    <span>📱</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 9: Avantages & Inconvenients =================== -->
+<div class="slide content-slide bg-3" data-slide="9">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 7</div>
+        <h2>Avantages et Inconvenients de l'IA</h2>
+        <div class="pros-cons">
+            <div class="col">
+                <h3 class="pro-title">&#10003; Avantages</h3>
+                <ul>
+                    <li>&#9679; Automatisation des taches repetitives et ennuyeuses</li>
+                    <li>&#9679; Analyse rapide de grandes quantites de donnees</li>
+                    <li>&#9679; Disponible 24h/24, 7j/7 sans fatigue</li>
+                    <li>&#9679; Amelioration des diagnostics medicaux</li>
+                    <li>&#9679; Reduction des erreurs humaines</li>
+                    <li>&#9679; Innovation dans tous les domaines scientifiques</li>
+                </ul>
+            </div>
+            <div class="col">
+                <h3 class="con-title">&#10007; Inconvenients</h3>
+                <ul>
+                    <li>&#9679; Risque de perte d'emplois (chomage technologique)</li>
+                    <li>&#9679; Questions de vie privee et surveillance</li>
+                    <li>&#9679; Biais dans les algorithmes et discrimination</li>
+                    <li>&#9679; Dependance excessive a la technologie</li>
+                    <li>&#9679; Cout eleve de developpement</li>
+                    <li>&#9679; Risques de mauvaise utilisation (deepfakes, armes)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 10: L'avenir =================== -->
+<div class="slide content-slide bg-4" data-slide="10">
+    <div class="slide-inner">
+        <div class="section-label">Chapitre 8</div>
+        <h2>L'Avenir de l'Intelligence Artificielle</h2>
+        <div class="two-col">
+            <div class="text-col">
+                <p>L'IA continue d'evoluer a une vitesse impressionnante. Voici quelques tendances pour l'avenir :</p>
+                <ul class="styled-list">
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">IA Generative</strong> : Creation de textes, images, videos et musique de plus en plus realistes</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">Medecine personnalisee</strong> : Traitements adaptes a chaque patient grace a l'IA</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">Robots intelligents</strong> : Des robots capables d'interagir naturellement avec les humains</span></li>
+                    <li><div class="bullet"></div><span><strong style="color:#c084fc">IA ethique</strong> : Developpement de lois et reglementations pour encadrer l'IA</span></li>
+                </ul>
+            </div>
+            <div class="img-col">
+                <div class="img-placeholder" style="background: linear-gradient(135deg, rgba(244,114,182,0.2), rgba(129,140,248,0.2));">
+                    <span>🔮</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 11: Conclusion =================== -->
+<div class="slide content-slide bg-2" data-slide="11">
+    <div class="slide-inner" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+        <div class="section-label">Conclusion</div>
+        <h2 style="max-width: 800px;">L'IA : Un Outil Puissant a Utiliser avec Responsabilite</h2>
+        <div style="max-width: 700px; margin-top: 10px;">
+            <p style="font-size: 1.05rem; color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 20px;">
+                L'intelligence artificielle est l'une des technologies les plus transformatrices de notre epoque. Elle offre des possibilites enormes pour ameliorer notre vie, mais elle souleve aussi des defis importants.
+            </p>
+            <p style="font-size: 1.05rem; color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 20px;">
+                En tant qu'etudiants et futurs citoyens, il est essentiel de comprendre comment l'IA fonctionne, de connaitre ses avantages et ses limites, et de contribuer a son developpement de maniere ethique et responsable.
+            </p>
+            <div style="background: rgba(129,140,248,0.1); border: 1px solid rgba(129,140,248,0.3); border-radius: 16px; padding: 24px; margin-top: 20px;">
+                <p style="font-size: 1.1rem; color: #c4b5fd; font-weight: 600; font-style: italic;">
+                    "L'intelligence artificielle est la nouvelle electricite."
+                </p>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-top: 8px;">
+                    - Andrew Ng, expert en IA
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== SLIDE 12: Merci =================== -->
+<div class="slide slide-thank" data-slide="12">
+    <div class="glow-orb" style="position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,0.2),transparent 70%);top:-100px;left:-100px;animation:pulse 4s ease-in-out infinite;"></div>
+    <div class="emoji-big">🎓</div>
+    <h1>Merci !</h1>
+    <p>Presentation realisee par <strong style="color:#c084fc">Ayoub Assouar</strong></p>
+    <p style="margin-top: 5px; font-size: 0.95rem;">Tronc Commun Scientifique</p>
+    <p style="margin-top: 30px; font-size: 0.9rem; color: rgba(255,255,255,0.4);">Des questions ?</p>
+</div>
+
+<!-- Navigation -->
+<div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide()">&#8592; Precedent</button>
+    <button class="nav-btn" onclick="nextSlide()">Suivant &#8594;</button>
+</div>
+<div class="slide-counter"><span id="current">1</span> / <span id="total">12</span></div>
+<div class="key-hint">Utilisez <kbd>&#8592;</kbd> <kbd>&#8594;</kbd> ou cliquez les boutons</div>
+
+<script>
+    let currentSlide = 1;
+    const totalSlides = 12;
+
+    function showSlide(n) {
+        if (n < 1 || n > totalSlides) return;
+        const slides = document.querySelectorAll('.slide');
+        const prev = currentSlide;
+        currentSlide = n;
+
+        slides.forEach((slide, i) => {
+            const num = i + 1;
+            slide.classList.remove('active', 'exit');
+            if (num === currentSlide) {
+                slide.classList.add('active');
+            } else if (num === prev) {
+                slide.classList.add('exit');
+            }
+        });
+
+        document.getElementById('current').textContent = currentSlide;
+    }
+
+    function nextSlide() { showSlide(currentSlide + 1); }
+    function prevSlide() { showSlide(currentSlide - 1); }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    });
+</script>
+
+</body>
+</html>
